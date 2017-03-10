@@ -14,7 +14,12 @@
 <body ng-app="app" ng-controller="home as home">
 <h1>Login</h1>
     <div class="container" ng-show="!home.authenticated">
-        With Facebook: <a href="/login/facebook">click here</a>
+        <div>
+            With Facebook: <a href="/login/facebook">click here</a>
+        </div>
+        <div>
+            With Github: <a href="/login/github">click here</a>
+        </div>
     </div>
     <div class="container" ng-show="home.authenticated">
         Logged in as: <span ng-bind="home.user"></span>
@@ -33,7 +38,7 @@
             .controller("home", function($http, $location) {
                 var self = this;
                 $http.get("/user").success(function(data) {
-                    self.user = data.userAuthentication.details.name;
+                    self.user = data.userAuthentication.details.name || data.userAuthentication.name; // github对应的信息直接在：userAuthentication.name下
                     self.authenticated = true;
                 }).error(function() {
                     self.user = "N/A";
