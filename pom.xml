@@ -7,7 +7,10 @@
     <groupId>com.elasticjee</groupId>
     <artifactId>spring-boot-oauth2</artifactId>
     <version>0.1.0</version>
-    <packaging>jar</packaging>
+    <modules>
+        <module>custom-error</module>
+    </modules>
+    <packaging>pom</packaging>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
