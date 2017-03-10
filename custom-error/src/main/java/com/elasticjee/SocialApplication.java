@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.AuthoritiesExtractor;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.ErrorPage;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,6 +48,7 @@ public class SocialApplication extends WebSecurityConfigurerAdapter {
         return principal;
     }
 
+    // capture an authentication error and redirect to the home page with that flag set in query parameters
     @RequestMapping("/unauthenticated")
     public String unauthenticated() {
         return "redirect:/?error=true";
@@ -61,6 +61,7 @@ public class SocialApplication extends WebSecurityConfigurerAdapter {
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
     }
 
+    //  be used to construct the authorities (typically "roles") of an authenticated user. We can use that hook to assert the the user is in the correct orignization, and throw an exception if not
     @Bean
     public AuthoritiesExtractor authoritiesExtractor(OAuth2RestOperations template) {
         return map -> {
@@ -71,7 +72,7 @@ public class SocialApplication extends WebSecurityConfigurerAdapter {
                     .anyMatch(org -> "spring-projects".equals(org.get("login")))) {
                 return AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_USER");
             }
-            throw new BadCredentialsException("Not in Spring Projects origanization");
+            throw new BadCredentialsException("Not in Spring Projects origanization"); // If there is no match, we throw BadCredentialsException and this is picked up by Spring Security and turned in to a 401 response.
         };
     }
 
@@ -80,19 +81,7 @@ public class SocialApplication extends WebSecurityConfigurerAdapter {
         return new OAuth2RestTemplate(resource, context);
     }
 
-    @Bean
-    @ConfigurationProperties("github")
-    public ClientResources github() {
-        return new ClientResources();
-    }
-
-    @Bean
-    @ConfigurationProperties("facebook")
-    public ClientResources facebook() {
-        return new ClientResources();
-    }
-
-
+    // mapping from an unauthenticated response (HTTP 401, a.k.a. UNAUTHORIZED) to the "/unauthenticated"
     @Configuration
     protected static class ServletCustomizer {
         @Bean
